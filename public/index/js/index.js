@@ -1,4 +1,4 @@
-console.log("working");
+console.log("now working");
 
 // ACTIVATING FULL SCREEN:
 // Find the right method, call on correct element

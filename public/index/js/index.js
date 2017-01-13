@@ -15,3 +15,12 @@ function launchIntoFullscreen(element) {
 };
 // launchIntoFullscreen(document.documentElement); -> the whole page
 // launchIntoFullscreen(document.getElementById("videoElement")); -> any individual element
+
+function startSession(nickname){
+    console.log(nickname);
+    document.getElementById('gameZone').innerHTML=nickname;
+    document.getElementById('gameContainer').style.paddingTop="165px";
+    document.getElementById('portfolio').style.display="none";
+    document.getElementById('about').style.display="none";
+    document.getElementById('footer').style.display="none";
+}

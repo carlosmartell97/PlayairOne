@@ -1,0 +1,14 @@
+html, body, header {
+/*	height: 100%;*/
+/*	overflow: hidden;*/
+}
+
+
+#canvas {
+	margin: 0px;
+	padding: 0px;
+	display: block;
+	position: absolute;
+	/*z-index: -1;*/
+    background-color: #18BC9C
+}

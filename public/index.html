@@ -14,6 +14,9 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="index/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Nardove CSS -->
+    <link rel="stylesheet" type="text/css" href="index/css/nardove.css" />
 
     <!-- Theme CSS -->
     <link href="index/css/freelancer.min.css" rel="stylesheet">
@@ -32,7 +35,9 @@
 <!--    <script src="https://rawgit.com/carlosmartell97/PlayairOne/master/public/index/js/index.js"></script>-->
     <script src="index/js/index.js"></script>
 </head>
-
+<span id="canvasZone">
+    <canvas id="canvas" resize></canvas> <script src="index/js/paperJS-and-jelly.js"></script><script src="index/js/tentacle.js"></script> <script src="index/js/nardove.js"></script>
+</span>
 <body id="page-top" class="index">
     <!-- Navigation -->
     <nav id="mainNav" class="navbar navbar-default navbar-fixed-top navbar-custom">
@@ -42,7 +47,7 @@
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                     <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
                 </button>
-                <a class="navbar-brand" href="#page-top">PLAYAIR ONE</a>
+                <a class="navbar-brand" href="#page-top" onclick="if(numJellies<8){numJellies++;} console.log(numJellies);">PLAYAIR ONE</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -66,13 +71,13 @@
 
     <!-- Header -->
     <header>
-        <div class="container" id="gameContainer">
+        <div class="container" id="gameContainer" style="height:100vh">
             <div class="row" id="gameZone">
                 <div class="col-lg-12">
                     <img class="img-responsive" src="index/img/gamepad.png" alt="" style="width:30%;  height: auto;">
                     <div class="intro-text">
                         <span class="name">PLAY. INSTANTLY.</span>
-                        <hr class="star-light">
+                        <hr class="gamepad">
                             <span class="skills">
                                 <a href="#hostModal" class="btn btn-lg btn-outline" onclick="launchIntoFullscreen(document.documentElement);" data-toggle="modal">
                                     <i class="fa fa-plus-circle"></i> Host session
@@ -167,7 +172,7 @@
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h2>About</h2>
-                    <hr class="star-light">
+                    <hr class="peace">
                 </div>
             </div>
             <div class="row">
@@ -497,7 +502,7 @@
                                                 <div id="success"></div>
                                                 <div class="row">
                                                     <div class="form-group col-xs-12">
-                                                        <button type="submit" class="btn btn-success btn-lg" data-dismiss="modal" onclick="startSession(document.getElementById('nickname').value);">Get code!</button>
+                                                        <button type="submit" class="btn btn-success btn-lg" data-dismiss="modal" onclick="startJoin(document.getElementById('nickname').value,0);">Get code!</button>
                                                     </div>
                                                     <button type="button" class="btn btn-default btn-lg" data-dismiss="modal" style="padding: 10px 20px"><i class="fa fa-times"></i> Cancel</button>
                                                 </div>
@@ -539,9 +544,9 @@
                                             <form name="sentMessage" id="contactForm" novalidate>
                                                 <div class="row control-group">
                                                     <div class="form-group col-xs-12 floating-label-form-group controls">
-                                                        <label style="font-size:14px">session code</label>
+                                                        <label style="font-size:14px">access code</label>
                                                         <a href="#code">
-                                                            <input type="text" class="form-control" placeholder="Session Code" id="code" required data-validation-required-message="Please enter host's session code.">
+                                                            <input type="text" class="form-control" placeholder="Access Code" id="code" required data-validation-required-message="Please enter host's access code.">
                                                         </a>
                                                         <p class="help-block text-danger"></p>
                                                     </div>
@@ -559,7 +564,7 @@
                                                 <div id="success"></div>
                                                 <div class="row">
                                                     <div class="form-group col-xs-12">
-                                                        <button type="submit" class="btn btn-success btn-lg" data-dismiss="modal" style="padding: 10px 32px">Join!</button>
+                                                        <button type="submit" class="btn btn-success btn-lg" data-dismiss="modal" style="padding: 10px 32px" onclick="startJoin(document.getElementById('nickname2').value,document.getElementById('code').value);">Join!</button>
                                                     </div>
                                                     <button type="button" class="btn btn-default btn-lg" data-dismiss="modal"><i class="fa fa-times"></i> Cancel</button>
                                                 </div>

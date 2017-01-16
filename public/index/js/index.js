@@ -25,31 +25,65 @@ function checkInput(nickname){
 //        console.log('nopeInput');
     }
 };
+function checkInput2(code,nickname){
+    console.log('check:'+code);
+    if(document.getElementById('code').value!=""){
+        joinSession(code,nickname);
+    }
+    else{
+//        console.log('nopeInput');
+    }
+};
 
 function createSession(nickname){
     //WRITING DATA
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child("sessions");
     var pushedData = sessionsRef.push({
-            "host":nickname
+            "host":{"nickname":nickname}
     }, function(error) {
         if (error) {
             console.log("Data could not be saved." + error);
         } else {
             console.log("Data saved successfully.");
-            console.log('pushed:'+pushedData.key());
+            console.log('created:'+pushedData.key());
             $('#hostModal').modal('hide');
             startJoin(document.getElementById('nickname').value,pushedData.key());
         }
     });
-    
 };
+
+function joinSession(code,nickname){
+    //WRITING DATA
+    var ref = new Firebase("https://playairone.firebaseio.com/");
+    var sessionsRef = ref.child("sessions").child(code);
+    var pushedData = sessionsRef.push({
+            "nickname":nickname
+    }, function(error) {
+        if (error) {
+            console.log("Data could not be saved." + error);
+        } else {
+            console.log("Data saved successfully.");
+            console.log('joined:'+pushedData.key());
+            $('#hostModal').modal('hide');
+            startJoin(document.getElementById('nickname2').value,code);
+        }
+    });
+}
 
 function startJoin(nickname,code){
     console.log("startJoin");
     document.getElementById('portfolio').style.display="none"; document.getElementById('about').style.display="none"; document.getElementById('footer').style.display="none";
     document.getElementById('gameContainer').style.paddingTop="165px";
-    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">ACCESS CODE:</span> <h1><span class="label label-warning" style="color:#000; font-size:6vw; text-transform:none">'+code+'</span></h1> </div> <div class="intro-text" style="padding:2vw; font-size:4vh"> Playairs: </div> <div class="col-lg-12" style=" width:95%; left:2.5%"> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Default</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Success</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primasdfsdfdary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Sucasdfdfcess</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Success</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primasdfsdfdary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Success</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primasdfsdfdary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primasdfsdfdary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Primary</button> <button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">Success</button> </div> </div> </div> <div class="container" id="gameContainer" style="padding:8px; position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="gameZone"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="startCounter('+"'"+nickname+"'"+','+"'"+code+"'"+',5)"> <i class="fa fa-thumbs-up"></i> Start! </a> </div> </div> </div>';
+    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">ACCESS CODE:</span> <h1><span class="label label-warning" style="color:#000; font-size:6vw; text-transform:none">'+code+'</span></h1> </div> <div class="intro-text" style="padding:2vw; font-size:4vh"> Playairs: </div> <div class="col-lg-12" id="playairs" style=" width:95%; left:2.5%"> </div> </div> </div> <div class="container" id="gameContainer" style="padding:8px; position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="gameZone"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="startCounter('+"'"+nickname+"'"+','+"'"+code+"'"+',5)"> <i class="fa fa-thumbs-up"></i> Start! </a> </div> </div> </div>';
+    var ref = new Firebase("https://playairone.firebaseio.com/");
+    var sessionsRef = ref.child('sessions').child(code);
+    sessionsRef.on("child_added", function(snapshot) {
+        var session = snapshot.val();
+        console.log(session.nickname);
+        $("#playairs").append('<button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">'+snapshot.val().nickname+'</button>');
+        numJellies++;
+    });
 };
 
 //window.onload=function() {

@@ -37,6 +37,8 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 <!--    <script src="https://rawgit.com/carlosmartell97/PlayairOne/master/public/index/js/index.js"></script>-->
+    
+    <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
     <script src="index/js/index.js"></script>
 </head>
 
@@ -423,7 +425,7 @@
                                                 <div id="success"></div>
                                                 <div class="row">
                                                     <div class="form-group col-xs-12">
-                                                        <button type="submit" class="btn btn-success btn-lg" data-dismiss="modal" onclick="startJoin(document.getElementById('nickname').value,0);">Get code!</button>
+                                                        <button type="submit" class="btn btn-success btn-lg" id="hostButton" onclick="checkInput(document.getElementById('nickname').value)">Get code!</button>
                                                     </div>
                                                     <button type="button" class="btn btn-default btn-lg" data-dismiss="modal" style="padding: 10px 20px"><i class="fa fa-times"></i> Cancel</button>
                                                 </div>

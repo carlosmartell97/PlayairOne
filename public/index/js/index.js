@@ -40,13 +40,13 @@ function createSession(nickname){
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child("sessions");
     var pushedData = sessionsRef.push({
-            "host":{"nickname":nickname}
+            "0":{"nickname":nickname}
     }, function(error) {
         if (error) {
             console.log("Data could not be saved." + error);
         } else {
             console.log("Data saved successfully.");
-            console.log('created:'+pushedData.key());
+//            console.log('created:'+pushedData.key());
             $('#hostModal').modal('hide');
             startJoin(document.getElementById('nickname').value,pushedData.key());
         }
@@ -55,21 +55,29 @@ function createSession(nickname){
 
 function joinSession(code,nickname){
     //WRITING DATA
-    var ref = new Firebase("https://playairone.firebaseio.com/");
-    var sessionsRef = ref.child("sessions").child(code);
-    var pushedData = sessionsRef.push({
-            "nickname":nickname
-    }, function(error) {
-        if (error) {
-            console.log("Data could not be saved." + error);
-        } else {
-            console.log("Data saved successfully.");
-            console.log('joined:'+pushedData.key());
-            $('#hostModal').modal('hide');
-            startJoin(document.getElementById('nickname2').value,code);
+    var ref = new Firebase("https://playairone.firebaseio.com/sessions/");
+    ref.once('value', function(snapshot) {
+        if (snapshot.hasChild(code)) {
+            document.getElementById('code').style.backgroundColor="#fff";
+            var sessionsRef = ref.child(code);
+            var pushedData = sessionsRef.push({
+                    "nickname":nickname
+            }, function(error) {
+                if (error) {
+                    console.log("Data could not be saved." + error);
+                } else {
+                    console.log("Data saved successfully.");
+//                    console.log('joined:'+pushedData.key());
+                    $('#hostModal').modal('hide');
+                    startJoin(document.getElementById('nickname2').value,code);
+                }
+            });
+        }
+        else{
+            document.getElementById('code').style.backgroundColor="#D9534F";
         }
     });
-}
+};
 
 function startJoin(nickname,code){
     console.log("startJoin");

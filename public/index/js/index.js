@@ -17,7 +17,7 @@ function launchIntoFullscreen(element) {
 // launchIntoFullscreen(document.getElementById("videoElement")); -> any individual element
 
 function checkInput(nickname){
-    console.log('check:'+nickname);
+    console.log('checkHost:'+nickname);
     if(document.getElementById('nickname').value!=""){
         createSession(nickname);
     }
@@ -26,7 +26,7 @@ function checkInput(nickname){
     }
 };
 function checkInput2(code,nickname){
-    console.log('check:'+code);
+    console.log('checkJoin:'+code);
     if(document.getElementById('code').value!=""){
         joinSession(code,nickname);
     }
@@ -58,7 +58,7 @@ function joinSession(code,nickname){
     var ref = new Firebase("https://playairone.firebaseio.com/sessions/");
     ref.once('value', function(snapshot) {
         if (snapshot.hasChild(code)) {
-            document.getElementById('code').style.backgroundColor="#fff";
+            document.getElementById("codeMessage").style.display="none";
             var sessionsRef = ref.child(code);
             var pushedData = sessionsRef.push({
                     "nickname":nickname
@@ -68,13 +68,14 @@ function joinSession(code,nickname){
                 } else {
                     console.log("Data saved successfully.");
 //                    console.log('joined:'+pushedData.key());
-                    $('#hostModal').modal('hide');
-                    startJoin(document.getElementById('nickname2').value,code);
+                    $('#joinModal').modal('hide');
                 }
             });
+            startJoin(document.getElementById('nickname2').value,code);
         }
         else{
-            document.getElementById('code').style.backgroundColor="#D9534F";
+            console.log('not Child');
+            document.getElementById("codeMessage").style.display="block";
         }
     });
 };

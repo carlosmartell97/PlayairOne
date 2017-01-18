@@ -1,4 +1,4 @@
-console.log("now working");
+var randomCode;
 
 // ACTIVATING FULL SCREEN:
 // Find the right method, call on correct element
@@ -16,13 +16,18 @@ function launchIntoFullscreen(element) {
 // launchIntoFullscreen(document.documentElement); -> the whole page
 // launchIntoFullscreen(document.getElementById("videoElement")); -> any individual element
 
-function checkInput(nickname){
+function checkInput(code,nickname){
     console.log('checkHost:'+nickname);
-    if(document.getElementById('nickname').value!=""){
-        createSession(nickname);
+    if((document.getElementById('nickname').value!="" && randomCode) || (document.getElementById('nickname').value!="" && document.getElementById('customCode').value!="")){
+        if(!randomCode){
+            createSession(nickname,code);
+        }
+        else{
+            createRandomSession(nickname);
+        }
     }
     else{
-//        console.log('nopeInput');
+        console.log('nopeInput');
     }
 };
 function checkInput2(code,nickname){
@@ -35,7 +40,8 @@ function checkInput2(code,nickname){
     }
 };
 
-function createSession(nickname){
+function createRandomSession(nickname){
+    console.log('create RANDOM');
     //WRITING DATA
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child("sessions");
@@ -48,7 +54,35 @@ function createSession(nickname){
             console.log("Data saved successfully.");
 //            console.log('created:'+pushedData.key());
             $('#hostModal').modal('hide');
-            startJoin(document.getElementById('nickname').value,pushedData.key());
+            startJoin(nickname,pushedData.key());
+        }
+    });
+};
+
+function createSession(nickname,customCode){
+    console.log('create CUSTOM');
+    //WRITING DATA
+    var ref = new Firebase("https://playairone.firebaseio.com/sessions/");
+    ref.once('value', function(snapshot) {
+        if (!snapshot.hasChild(customCode)) {
+            document.getElementById("customCodeMessage").style.display="none";
+            var sessionsRef = ref.child(customCode);
+            var pushedData = sessionsRef.push({
+                    "nickname":nickname
+            }, function(error) {
+                if (error) {
+                    console.log("Data could not be saved." + error);
+                } else {
+                    console.log("Data saved successfully.");
+//                    console.log('joined:'+pushedData.key());
+                }
+            });
+            startJoin(nickname,customCode);
+            $('#hostModal').modal('hide');
+        }
+        else{
+            console.log('not Child');
+            document.getElementById("customCodeMessage").style.display="block";
         }
     });
 };

@@ -40,6 +40,13 @@
     
     <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
     <script src="index/js/index.js"></script>
+    
+    <!-- jQuery -->
+    <script src="index/js/jquery.min.js"></script>
+    
+    <!-- BOOTSTRAP SWITCH -->
+    <link href="index/css/bootstrap-switch.css" rel="stylesheet">
+    <script src="index/js/bootstrap-switch.js"></script>
 </head>
 
 <body id="page-top" class="index">
@@ -51,7 +58,7 @@
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                     <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
                 </button>
-                <a class="navbar-brand" href="#page-top" onclick="if(numJellies<8){numJellies++;} console.log(numJellies);">PLAYAIR ONE</a>
+                <a class="navbar-brand" href="#page-top">PLAYAIR ONE</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -420,14 +427,26 @@
                                                         </a>
                                                         <p class="help-block text-danger"></p>
                                                     </div>
+                                                <div class="row control-group">
+                                                    <div class="form-group col-xs-12 floating-label-form-group controls" id="customCodeDiv">
+                                                        <label style="font-size:14px">custom access code</label>
+                                                        <a href="#customCode">
+                                                            <input type="text" class="form-control" placeholder="Custom Access Code" id="customCode" required data-validation-required-message="Access code already exists.">
+                                                        </a>
+                                                        <p class="help-block text-danger" id="customCodeMessage" style="display:none">Access code already exists</p>
+                                                    </div>
+                                                </div>
                                                 </div>
                                                 <br>
                                                 <div id="success"></div>
                                                 <div class="row">
-                                                    <div class="form-group col-xs-12">
-                                                        <button type="submit" class="btn btn-success btn-lg" id="hostButton" onclick="checkInput(document.getElementById('nickname').value)">Get code!</button>
+                                                    <div class="form-group col-xs-12" style="font-size:2.5vh">
+                                                        Random Code? <input type="checkbox" name="my-checkbox">
                                                     </div>
-                                                    <button type="button" class="btn btn-default btn-lg" data-dismiss="modal" style="padding: 10px 20px"><i class="fa fa-times"></i> Cancel</button>
+                                                    <div class="form-group col-xs-12">
+                                                        <button type="submit" class="btn btn-success btn-lg" id="hostButton" onclick="checkInput(document.getElementById('customCode').value,document.getElementById('nickname').value)">Create session!</button>
+                                                    </div>
+                                                    <button type="button" class="btn btn-default btn-lg" data-dismiss="modal" style="padding: 10px 42px"><i class="fa fa-times"></i> Cancel</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -471,7 +490,7 @@
                                                         <a href="#code">
                                                             <input type="text" class="form-control" placeholder="Access Code" id="code" required data-validation-required-message="Incorrect access code.">
                                                         </a>
-                                                        <p class="help-block text-danger" id="codeMessage" style="display:none">Incorrect acess code</p>
+                                                        <p class="help-block text-danger" id="codeMessage" style="display:none">Incorrect access code.</p>
                                                     </div>
                                                 </div>
                                                 <div class="row control-group">
@@ -503,9 +522,6 @@
         </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="index/js/jquery.min.js"></script>
-
     <!-- Bootstrap Core JavaScript -->
     <script src="index/js/bootstrap.min.js"></script>
 
@@ -518,7 +534,21 @@
 
     <!-- Theme JavaScript -->
     <script src="index/js/freelancer.min.js"></script>
-
+    
+    <script>
+        $("[name='my-checkbox']").bootstrapSwitch();
+        $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
+            if(state){
+                randomCode=true;
+                document.getElementById("customCodeDiv").style.display="none";
+                document.getElementById('hostButton').innerHTML="Get code!";
+            }else{
+                randomCode=false;
+                document.getElementById("customCodeDiv").style.display="block";
+                document.getElementById('hostButton').innerHTML="Create session!";
+            }
+        });
+    </script>
 </body>
 
 </html>

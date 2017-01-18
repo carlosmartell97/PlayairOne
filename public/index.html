@@ -446,7 +446,7 @@
                                                     <div class="form-group col-xs-12">
                                                         <button type="submit" class="btn btn-success btn-lg" id="hostButton" onclick="checkInput(document.getElementById('customCode').value,document.getElementById('nickname').value)">Create session!</button>
                                                     </div>
-                                                    <button type="button" class="btn btn-default btn-lg" data-dismiss="modal" style="padding: 10px 42px"><i class="fa fa-times"></i> Cancel</button>
+                                                    <button type="button" class="btn btn-default btn-lg" id="cancelButton" data-dismiss="modal" style="padding: 10px 42px"><i class="fa fa-times"></i> Cancel</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -540,12 +540,14 @@
         $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
             if(state){
                 randomCode=true;
-                document.getElementById("customCodeDiv").style.display="none";
                 document.getElementById('hostButton').innerHTML="Get code!";
+                document.getElementById("customCodeDiv").style.display="none";
+                document.getElementById('cancelButton').style.padding="10px 20px";
             }else{
                 randomCode=false;
-                document.getElementById("customCodeDiv").style.display="block";
                 document.getElementById('hostButton').innerHTML="Create session!";
+                document.getElementById("customCodeDiv").style.display="block";
+                document.getElementById('cancelButton').style.padding="10px 42px";
             }
         });
     </script>

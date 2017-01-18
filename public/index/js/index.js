@@ -27,7 +27,7 @@ function checkInput(code,nickname){
         }
     }
     else{
-        console.log('nopeInput');
+//        console.log('nopeInput');
     }
 };
 function checkInput2(code,nickname){
@@ -41,7 +41,6 @@ function checkInput2(code,nickname){
 };
 
 function createRandomSession(nickname){
-    console.log('create RANDOM');
     //WRITING DATA
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child("sessions");
@@ -52,7 +51,6 @@ function createRandomSession(nickname){
             console.log("Data could not be saved." + error);
         } else {
             console.log("Data saved successfully.");
-//            console.log('created:'+pushedData.key());
             $('#hostModal').modal('hide');
             startJoin(nickname,pushedData.key());
         }
@@ -60,7 +58,6 @@ function createRandomSession(nickname){
 };
 
 function createSession(nickname,customCode){
-    console.log('create CUSTOM');
     //WRITING DATA
     var ref = new Firebase("https://playairone.firebaseio.com/sessions/");
     ref.once('value', function(snapshot) {
@@ -74,14 +71,13 @@ function createSession(nickname,customCode){
                     console.log("Data could not be saved." + error);
                 } else {
                     console.log("Data saved successfully.");
-//                    console.log('joined:'+pushedData.key());
                 }
             });
             startJoin(nickname,customCode);
             $('#hostModal').modal('hide');
         }
         else{
-            console.log('not Child');
+            console.log('codeAlreadyExists');
             document.getElementById("customCodeMessage").style.display="block";
         }
     });
@@ -101,7 +97,6 @@ function joinSession(code,nickname){
                     console.log("Data could not be saved." + error);
                 } else {
                     console.log("Data saved successfully.");
-//                    console.log('joined:'+pushedData.key());
                     $('#joinModal').modal('hide');
                 }
             });
@@ -123,8 +118,7 @@ function startJoin(nickname,code){
     var sessionsRef = ref.child('sessions').child(code);
     sessionsRef.on("child_added", function(snapshot) {
         var session = snapshot.val();
-        console.log(session.nickname);
-        $("#playairs").append('<button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">'+snapshot.val().nickname+'</button>');
+        $("#playairs").append('<button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">'+session.nickname+'</button>');
         numJellies++;
     });
 };

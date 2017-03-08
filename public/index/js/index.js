@@ -137,9 +137,14 @@ function startJoin(nickname,code){
         numJellies++;
     });
     sessionsRef.on("child_changed", function(snapshot) {
+        console.log(snapshot.val());
         var changedChild = snapshot.val();
 //        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
-        if(snapshot.hasChild('start')){
+        console.log(changedChild.question);
+        if(changedChild.question>1){
+            updateQuestion(++currentQuestion,playair,sessionCode)
+        }
+        else if(changedChild.question==1 && snapshot.hasChild('start')){
             console.log('session start!');
             startCounter(playair,sessionCode,5);
         }
@@ -151,7 +156,8 @@ function startButton(nickname,code){
     var sessionsRef = ref.child('sessions').child(code).child(hostKey);
     sessionsRef.once("value", function(snapshot) {
         sessionsRef.update({
-            "start":true
+            "start":true,
+            "question":1
         },function(error) {
             if (error) {
                 console.log("Data could not be saved." + error);
@@ -190,6 +196,22 @@ function startSession(nickname,code){
     updateQuestion(currentQuestion,nickname,code);
 };
 
+function updateDatabaseQuestion(playair,sessionCode){
+    var ref = new Firebase("https://playairone.firebaseio.com/");
+    var sessionsRef = ref.child('sessions').child(sessionCode).child(hostKey);
+    sessionsRef.once("value", function(snapshot) {
+        sessionsRef.update({
+            "question":currentQuestion+1
+        },function(error) {
+            if (error) {
+                console.log("Data could not be saved." + error);
+            } else {
+                console.log("Data saved successfully.");
+            }
+        });
+    });
+}
+
 function updateQuestion(number,nickname,code){
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var questionsRef = ref.child('games').child('Quiz').child('questions').child(currentQuestion);
@@ -197,7 +219,11 @@ function updateQuestion(number,nickname,code){
         console.log(question.key());
         console.log(question.val());
         document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline"> Option one </a> <a class="btn btn-lg btn-outline"> Opción dos </a> <br> <a class="btn btn-lg btn-outline"> '+question.val()+' </a> <a class="btn btn-lg btn-outline"> Option vier </a> </span> </div> </div> </div>';
-        $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateQuestion(++currentQuestion,playair,sessionCode)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
+        if(host){
+            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateDatabaseQuestion(playair,sessionCode)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
+        }else{
+            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
+        }
         $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
         setTimeout("startQuestion()",2000);
     });

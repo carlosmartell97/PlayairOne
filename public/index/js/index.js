@@ -119,6 +119,8 @@ function startJoin(nickname,code){
     sessionCode=code;
     document.getElementById('portfolio').style.display="none"; document.getElementById('about').style.display="none"; document.getElementById('footer').style.display="none";
     document.getElementById('gameContainer').style.paddingTop="165px";
+    document.getElementById('toggleButton').innerHTML="STATS";
+    document.getElementById('toggleStats').innerHTML="";
     document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">ACCESS CODE:</span> <h1><span class="label label-warning" style="color:#000; font-size:6vw; text-transform:none">'+code+'</span></h1> </div> <div class="intro-text" style="padding:2vw; font-size:4vh"> Playairs: </div> <div class="col-lg-12" id="playairs" style=" width:95%; left:2.5%"> </div> </div> </div> <div class="container" id="footer" style="padding:8px; position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" id="startButton" style="font-size:5vh" onclick="startButton('+"'"+nickname+"'"+','+"'"+code+"'"+')"> <i class="fa fa-thumbs-up"></i> Start! </a> </div> </div> </div>';
     if(!host){
         document.getElementById('startButton').style.display="none";
@@ -131,6 +133,7 @@ function startJoin(nickname,code){
     sessionsRef.on("child_added", function(snapshot) {
         var session = snapshot.val();
         $("#playairs").append('<button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">'+session.nickname+'</button>');
+        $("#toggleStats").append('<li class="page-scroll"><a>'+session.nickname+': <span id="'+session.nickname+'points">'+0+'</span></a></li>');
         numJellies++;
     });
     sessionsRef.on("child_changed", function(snapshot) {
@@ -179,7 +182,6 @@ function startCounter(nickname,code,num){
 function startSession(nickname,code){
     console.log("startSession");
     document.getElementById('gameContainer').style.paddingTop="165px"; document.getElementById('gameContainer').style.height="100vh";
-    
 //    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">Question</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline"> Option one </a> <a class="btn btn-lg btn-outline"> Opción dos </a> <br> <a class="btn btn-lg btn-outline"> Opzione tre </a> <a class="btn btn-lg btn-outline"> Option vier </a> </span> </div> </div> </div>';
 //    $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> Session Code: <span id="sessionCode">'+code+'</span> </div>');
 //    $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
@@ -195,7 +197,7 @@ function updateQuestion(number,nickname,code){
         console.log(question.key());
         console.log(question.val());
         document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline"> Option one </a> <a class="btn btn-lg btn-outline"> Opción dos </a> <br> <a class="btn btn-lg btn-outline"> '+question.val()+' </a> <a class="btn btn-lg btn-outline"> Option vier </a> </span> </div> </div> </div>';
-        $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateQuestion(++currentQuestion)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
+        $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateQuestion(++currentQuestion,playair,sessionCode)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
         $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
         setTimeout("startQuestion()",2000);
     });
@@ -207,10 +209,10 @@ function startQuestion(){
     var i = 0;
     var progressBar = setInterval(function () {
         i++;
-        if (i > 0) {
+        if (i < 99) {
             $('.progress-bar').css('width', i + '%');
         } else {
-            clearInterval(counterBack);
+            clearInterval(progressBar);
         }
     }, 100);
 };

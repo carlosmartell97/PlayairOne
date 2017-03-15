@@ -1,5 +1,5 @@
 var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var howManyQuestions;
-var playair; var sessionCode; var hostKey; var score=0;
+var playair; var playairCode; var sessionCode; var hostKey; var score=0;
 
 // ACTIVATING FULL SCREEN:
 // Find the right method, call on correct element
@@ -77,6 +77,7 @@ function createCustomSession(nickname,customCode){
                     console.log("Data could not be saved." + error);
                 } else {
                     console.log("Data saved successfully.");
+                    
                 }
             });
             $('#hostModal').modal('hide');
@@ -105,6 +106,7 @@ function joinSession(code,nickname){
                     console.log("Data could not be saved." + error);
                 } else {
                     console.log("Data saved successfully.");
+                    playairCode=pushedData.key();
                     $('#joinModal').modal('hide');
                 }
             });
@@ -133,7 +135,8 @@ function startJoin(nickname,code){
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child('sessions').child(code);
     sessionsRef.limitToFirst(1).on("child_added", function(snapshot) {
-      hostKey=snapshot.key();
+        hostKey=snapshot.key();
+        if(host) playairCode=hostKey;
     });
     sessionsRef.on("child_added", function(snapshot) {
         var session = snapshot.val();
@@ -172,6 +175,9 @@ function startButton(nickname,code){
                 startCounter(playair,sessionCode,5);*/
             }
         });
+    });
+    ref.child('games').child('Quiz').child('questions').once("value").then(function(snapshot){
+        howManyQuestions = snapshot.numChildren();
     });
 }
 
@@ -226,12 +232,12 @@ function updateDatabaseQuestion(playair,sessionCode){
 
 function updateQuestion(number,nickname,code){
     var ref = new Firebase("https://playairone.firebaseio.com/");
-    var ref = new Firebase("https://playairone.firebaseio.com/");
+    // update score history, adding the score for the current question
     if(currentQuestion>1){
-        var currentQuestionRef = ref.child('sessions').child(sessionCode).child('questionScores');
+        var currentQuestionRef = ref.child('sessions').child(sessionCode).child('questionScores').child(currentQuestion-1);
         currentQuestionRef.once("value", function(snapshot) {
             var objToWrite=new Object();
-            objToWrite[currentQuestion-1]=score;
+            objToWrite[playair]=score;
             currentQuestionRef.update(objToWrite,function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);
@@ -241,8 +247,23 @@ function updateQuestion(number,nickname,code){
             });
         });
     }
-    ref.child('games').child('Quiz').child('questions').once("value").then(function(snapshot){
-        howManyQuestions = snapshot.numChildren();
+    var totalScoreRef = ref.child('sessions').child(sessionCode).child(playair); /*este último child debería de ser "playairCode", no "playair".
+                                                                                pero si le pongo como debería de ser, el child_changed en startJoing()
+                                                                                detecta un cambio y se corre updateQuestion() y voy avanzando de pregunta
+                                                                                de dos en dos. Por eso es questionScores se repiten 2 veces las scores. Una 
+                                                                                es la real y la otra en la que se detecta el child_changed.
+                                                                                Necesito encontrar una manera de que el child sí lo ponga como "playairCode"
+                                                                                pero no se corra updateQuestion() cuando se detecta el cambio en startJoin() */
+    totalScoreRef.once("value", function(snapshot) {
+        totalScoreRef.update({
+            "score":score
+        },function(error) {
+            if (error) {
+                console.log("Data could not be saved." + error);
+            } else {
+                console.log("Data saved successfully.");
+            }
+        });
     });
     var questionsRef = ref.child('games').child('Quiz').child('questions').child(currentQuestion);
     questionsRef.on("child_added", function(question) {
@@ -264,19 +285,6 @@ function updateQuestion(number,nickname,code){
 function updateScore(){
     score+=500;
     console.log("s:"+score);
-    /*var ref = new Firebase("https://playairone.firebaseio.com/");
-    var sessionsRef = ref.child('sessions').child(sessionCode).child(hostKey);
-    sessionsRef.once("value", function(snapshot) {
-        sessionsRef.update({
-            "question":currentQuestion+1
-        },function(error) {
-            if (error) {
-                console.log("Data could not be saved." + error);
-            } else {
-                console.log("Data saved successfully.");
-            }
-        });
-    });*/
 };
 
 function startQuestion(){

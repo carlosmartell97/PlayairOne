@@ -1,5 +1,5 @@
-var randomCode=false; var host=false; var currentQuestion=1;
-var playair; var sessionCode; var hostKey;
+var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var howManyQuestions;
+var playair; var sessionCode; var hostKey; var score=0;
 
 // ACTIVATING FULL SCREEN:
 // Find the right method, call on correct element
@@ -46,7 +46,10 @@ function createRandomSession(nickname){
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child("sessions");
     var pushedData = sessionsRef.push({
-            "0":{"nickname":nickname}
+            "0":{
+                "nickname":nickname,
+                "score":0
+            }
     }, function(error) {
         if (error) {
             console.log("Data could not be saved." + error);
@@ -67,7 +70,8 @@ function createCustomSession(nickname,customCode){
             document.getElementById("customCodeMessage").style.display="none";
             var sessionsRef = ref.child(customCode);
             var pushedData = sessionsRef.push({
-                    "nickname":nickname
+                    "nickname":nickname,
+                    "score":0
             }, function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);
@@ -94,7 +98,8 @@ function joinSession(code,nickname){
             document.getElementById("codeMessage").style.display="none";
             var sessionsRef = ref.child(code);
             var pushedData = sessionsRef.push({
-                    "nickname":nickname
+                    "nickname":nickname,
+                    "score":0
             }, function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);
@@ -141,13 +146,13 @@ function startJoin(nickname,code){
         var changedChild = snapshot.val();
 //        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
         console.log(changedChild.question);
-        if(changedChild.question>1){
-            updateQuestion(++currentQuestion,playair,sessionCode)
-        }
-        else if(changedChild.question==1 && snapshot.hasChild('start')){
+        /*if(changedChild.question>1){
+            updateQuestion(++currentQuestion,playair,sessionCode);
+        }*/
+        /*else if(changedChild.question==1 && snapshot.hasChild('start')){
             console.log('session start!');
             startCounter(playair,sessionCode,5);
-        }
+        }*/
     });
 };
 
@@ -163,6 +168,8 @@ function startButton(nickname,code){
                 console.log("Data could not be saved." + error);
             } else {
                 console.log("Data saved successfully.");
+                console.log('session start!');
+                startCounter(playair,sessionCode,5);
             }
         });
     });
@@ -197,7 +204,65 @@ function startSession(nickname,code){
 };
 
 function updateDatabaseQuestion(playair,sessionCode){
+    if(currentQuestion<=howManyQuestions){
+        updateQuestion(++currentQuestion,playair,sessionCode);
+        var ref = new Firebase("https://playairone.firebaseio.com/");
+        var sessionsRef = ref.child('sessions').child(sessionCode).child(hostKey);
+        sessionsRef.once("value", function(snapshot) {
+            sessionsRef.update({
+                "question":currentQuestion
+            },function(error) {
+                if (error) {
+                    console.log("Data could not be saved." + error);
+                } else {
+                    console.log("Data saved successfully.");
+                }
+            });
+        });
+    }
+}
+
+function updateQuestion(number,nickname,code){
     var ref = new Firebase("https://playairone.firebaseio.com/");
+    var ref = new Firebase("https://playairone.firebaseio.com/");
+    if(currentQuestion>1){
+        var currentQuestionRef = ref.child('sessions').child(sessionCode).child('questionScores');
+        currentQuestionRef.once("value", function(snapshot) {
+            var objToWrite=new Object();
+            objToWrite[currentQuestion-1]=score;
+            currentQuestionRef.update(objToWrite,function(error) {
+                if (error) {
+                    console.log("Data could not be saved." + error);
+                } else {
+                    console.log("Data saved successfully.");
+                }
+            });
+        });
+    }
+    ref.child('games').child('Quiz').child('questions').once("value").then(function(snapshot){
+        howManyQuestions = snapshot.numChildren();
+    });
+    var questionsRef = ref.child('games').child('Quiz').child('questions').child(currentQuestion);
+    questionsRef.on("child_added", function(question) {
+        console.log(question.key());
+        console.log(question.val());
+        var answers=question.val();
+        correctAnswer=answers[0];
+        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==1) updateScore();"> '+answers[1]+' </a> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==2) updateScore();"> '+answers[2]+' </a> <br> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==3) updateScore();"> '+answers[3]+' </a> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==4) updateScore();"> '+answers[4]+' </a> </span> </div> </div> </div>';
+        if(host){
+            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateDatabaseQuestion(playair,sessionCode)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
+        }else{
+            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
+        }
+        $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
+        setTimeout("startQuestion()",2000);
+    });
+};
+
+function updateScore(){
+    score+=500;
+    console.log("s:"+score);
+    /*var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child('sessions').child(sessionCode).child(hostKey);
     sessionsRef.once("value", function(snapshot) {
         sessionsRef.update({
@@ -209,24 +274,7 @@ function updateDatabaseQuestion(playair,sessionCode){
                 console.log("Data saved successfully.");
             }
         });
-    });
-}
-
-function updateQuestion(number,nickname,code){
-    var ref = new Firebase("https://playairone.firebaseio.com/");
-    var questionsRef = ref.child('games').child('Quiz').child('questions').child(currentQuestion);
-    questionsRef.on("child_added", function(question) {
-        console.log(question.key());
-        console.log(question.val());
-        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline"> Option one </a> <a class="btn btn-lg btn-outline"> Opción dos </a> <br> <a class="btn btn-lg btn-outline"> '+question.val()+' </a> <a class="btn btn-lg btn-outline"> Option vier </a> </span> </div> </div> </div>';
-        if(host){
-            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateDatabaseQuestion(playair,sessionCode)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
-        }else{
-            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
-        }
-        $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
-        setTimeout("startQuestion()",2000);
-    });
+    });*/
 };
 
 function startQuestion(){

@@ -146,13 +146,13 @@ function startJoin(nickname,code){
         var changedChild = snapshot.val();
 //        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
         console.log(changedChild.question);
-        /*if(changedChild.question>1){
+        if(changedChild.question>1){
             updateQuestion(++currentQuestion,playair,sessionCode);
-        }*/
-        /*else if(changedChild.question==1 && snapshot.hasChild('start')){
+        }
+        if(changedChild.question==1 && snapshot.hasChild('start')){
             console.log('session start!');
             startCounter(playair,sessionCode,5);
-        }*/
+        }
     });
 };
 
@@ -168,8 +168,8 @@ function startButton(nickname,code){
                 console.log("Data could not be saved." + error);
             } else {
                 console.log("Data saved successfully.");
-                console.log('session start!');
-                startCounter(playair,sessionCode,5);
+                /*console.log('session start!');
+                startCounter(playair,sessionCode,5);*/
             }
         });
     });
@@ -205,12 +205,14 @@ function startSession(nickname,code){
 
 function updateDatabaseQuestion(playair,sessionCode){
     if(currentQuestion<=howManyQuestions){
-        updateQuestion(++currentQuestion,playair,sessionCode);
+        //updateQuestion(++currentQuestion,playair,sessionCode);
+        /*console.log('session start!');
+        startCounter(playair,sessionCode,5);*/
         var ref = new Firebase("https://playairone.firebaseio.com/");
         var sessionsRef = ref.child('sessions').child(sessionCode).child(hostKey);
         sessionsRef.once("value", function(snapshot) {
             sessionsRef.update({
-                "question":currentQuestion
+                "question":currentQuestion+1
             },function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);

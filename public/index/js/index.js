@@ -1,4 +1,4 @@
-var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var howManyQuestions;
+var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions;
 var playair; var playairCode; var sessionCode; var hostKey; var score=0;
 
 // ACTIVATING FULL SCREEN:
@@ -150,6 +150,7 @@ function startJoin(nickname,code){
 //        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
         console.log(changedChild.question);
         if(changedChild.question>1){
+            answerWasCorrect=false;
             updateQuestion(++currentQuestion,playair,sessionCode);
         }
         else{ 
@@ -220,24 +221,53 @@ function startSession(nickname,code){
 };
 
 function updateDatabaseQuestion(playair,sessionCode){
-    if(currentQuestion<=howManyQuestions){
-        //updateQuestion(++currentQuestion,playair,sessionCode);
-        /*console.log('session start!');
-        startCounter(playair,sessionCode,5);*/
-        var ref = new Firebase("https://playairone.firebaseio.com/");
-        var sessionsRef = ref.child('sessions').child(sessionCode).child('playairs').child(hostKey);
-        sessionsRef.once("value", function(snapshot) {
-            sessionsRef.update({
-                "question":currentQuestion+1
-            },function(error) {
-                if (error) {
-                    console.log("Data could not be saved." + error);
-                } else {
-                    console.log("Data saved successfully.");
-                }
-            });
-        });
+    $('#nextButton').css("display","none");
+    $('#options').css('visibility','visible').hide().fadeOut('slow');
+    $('#correctAnswerFirst').css('visibility','visible').hide().fadeIn('slow');
+    if(answerWasCorrect){
+        document.getElementById('correctAnswerIcon').className="fa fa-check fa-4x";
+    }else{
+        document.getElementById('correctAnswerIcon').className="fa fa-times fa-4x";
     }
+    document.getElementById('correctAnswerText').innerHTML=correctAnswerText;
+    
+    var second = setTimeout(function(){
+        $('#correctAnswerFirst').css('visibility','visible').hide().fadeOut('slow');
+        $('#correctAnswerFirst').css('display','none');
+        $('#correctAnswerSecond').css('visibility','visible').hide().fadeIn('slow');
+    }, 800);
+    
+    var third = setTimeout(function(){
+        if(currentQuestion<=howManyQuestions){
+            $('#correctAnswerSecond').css('display','none');
+            $('#correctAnswerSecond').css('visibility','visible').hide().fadeOut('slow');
+            //updateQuestion(++currentQuestion,playair,sessionCode);
+            /*console.log('session start!');
+            startCounter(playair,sessionCode,5);*/
+            var ref = new Firebase("https://playairone.firebaseio.com/");
+            var sessionsRef = ref.child('sessions').child(sessionCode).child('playairs').child(hostKey);
+            sessionsRef.once("value", function(snapshot) {
+                sessionsRef.update({
+                    "question":currentQuestion+1
+                },function(error) {
+                    if (error) {
+                        console.log("Data could not be saved." + error);
+                    } else {
+                        console.log("Data saved successfully.");
+                    }
+                });
+            });
+        }
+    }, 3000);
+    
+    /*var progressBar = setInterval(function () {
+        i++;
+        if (i < 99) {
+            $('.progress-bar').css('width', i + '%');
+        } else {
+            clearInterval(progressBar);
+        }
+    }, 100);*/
 }
 
 function updateQuestion(number,nickname,code){
@@ -275,21 +305,35 @@ function updateQuestion(number,nickname,code){
         console.log(question.val());
         var answers=question.val();
         correctAnswer=answers[0];
-        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==1) updateScore();"> '+answers[1]+' </a> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==2) updateScore();"> '+answers[2]+' </a> <br> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==3) updateScore();"> '+answers[3]+' </a> <a class="btn btn-lg btn-outline" onclick="if(correctAnswer==4) updateScore();"> '+answers[4]+' </a> </span> </div> </div> </div>';
-        if(host){
-            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateDatabaseQuestion(playair,sessionCode)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
-        }else{
+        correctAnswerText=answers[correctAnswer];
+        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline" onclick="updateScore(1);"> '+answers[1]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(2);"> '+answers[2]+' </a> <br> <a class="btn btn-lg btn-outline" onclick="updateScore(3);"> '+answers[3]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(4);"> '+answers[4]+' </a> </span> </div> </div> <div id="correctAnswerDiv" style="position:absolute; bottom:18vh; left:0; right:0; font-size:3vh"> <div id="correctAnswerFirst" style="visibility:hidden; display:none"> <i id="correctAnswerIcon" class="fa fa-times fa-4x" aria-hidden="true"></i> </div> <div id="correctAnswerSecond" style="visibility:hidden; display:none"> ANSWER:<br> <a class="btn btn-lg btn-outline"> <span id="correctAnswerText">text</span> </a> </div> </div> </div>';
+        //if(host){
+            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> <div id="nextButton" style="display:none"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateDatabaseQuestion(playair,sessionCode)"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
+        //}
+        /*else{
             $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
-        }
+        }*/
         $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
         setTimeout("startQuestion()",2000);
     });
 };
 
-function updateScore(){
-    score+=500;
-    console.log("s:"+score);
+function updateScore(choice){
+    if(choice==correctAnswer){
+        score+=500;
+        console.log("s:"+score);
+        answerWasCorrect=true;
+    }else{
+        answerWasCorrect=false;
+    }
+    checkHost();
 };
+
+function checkHost(){
+    if(host){
+        $('#nextButton').css("display","block");
+    }
+}
 
 function startQuestion(){
     $('.progress').css('visibility','visible').hide().fadeIn('slow');

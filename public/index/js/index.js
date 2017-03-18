@@ -46,10 +46,11 @@ function createRandomSession(nickname){
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child("sessions");
     var pushedData = sessionsRef.push({
+        "playairs":{
             "0":{
-                "nickname":nickname,
-                "score":0
+                "nickname":nickname
             }
+        }
     }, function(error) {
         if (error) {
             console.log("Data could not be saved." + error);
@@ -68,10 +69,9 @@ function createCustomSession(nickname,customCode){
     ref.once('value', function(snapshot) {
         if (!snapshot.hasChild(customCode)) {
             document.getElementById("customCodeMessage").style.display="none";
-            var sessionsRef = ref.child(customCode);
+            var sessionsRef = ref.child(customCode).child('playairs');
             var pushedData = sessionsRef.push({
-                    "nickname":nickname,
-                    "score":0
+                "nickname":nickname
             }, function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);
@@ -97,10 +97,9 @@ function joinSession(code,nickname){
     ref.once('value', function(snapshot) {
         if (snapshot.hasChild(code)) {
             document.getElementById("codeMessage").style.display="none";
-            var sessionsRef = ref.child(code);
+            var sessionsRef = ref.child(code).child('playairs');
             var pushedData = sessionsRef.push({
-                    "nickname":nickname,
-                    "score":0
+                    "nickname":nickname
             }, function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);
@@ -133,7 +132,7 @@ function startJoin(nickname,code){
         document.getElementById('startButton').style.display="none";
     }
     var ref = new Firebase("https://playairone.firebaseio.com/");
-    var sessionsRef = ref.child('sessions').child(code);
+    var sessionsRef = ref.child('sessions').child(code).child('playairs');
     sessionsRef.limitToFirst(1).on("child_added", function(snapshot) {
         hostKey=snapshot.key();
         if(host) playairCode=hostKey;
@@ -161,7 +160,8 @@ function startJoin(nickname,code){
 
 function startButton(nickname,code){
     var ref = new Firebase("https://playairone.firebaseio.com/");
-    var sessionsRef = ref.child('sessions').child(code).child(hostKey);
+    var sessionsRef = ref.child('sessions').child(code).child('playairs').child(hostKey);
+    console.log(hostKey);
     sessionsRef.once("value", function(snapshot) {
         sessionsRef.update({
             "start":true,
@@ -215,7 +215,7 @@ function updateDatabaseQuestion(playair,sessionCode){
         /*console.log('session start!');
         startCounter(playair,sessionCode,5);*/
         var ref = new Firebase("https://playairone.firebaseio.com/");
-        var sessionsRef = ref.child('sessions').child(sessionCode).child(hostKey);
+        var sessionsRef = ref.child('sessions').child(sessionCode).child('playairs').child(hostKey);
         sessionsRef.once("value", function(snapshot) {
             sessionsRef.update({
                 "question":currentQuestion+1
@@ -234,10 +234,10 @@ function updateQuestion(number,nickname,code){
     var ref = new Firebase("https://playairone.firebaseio.com/");
     // update score history, adding the score for the current question
     if(currentQuestion>1){
-        var currentQuestionRef = ref.child('sessions').child(sessionCode).child('questionScores').child(currentQuestion-1);
+        var currentQuestionRef = ref.child('sessions').child(sessionCode).child('questionScores').child(playair);
         currentQuestionRef.once("value", function(snapshot) {
             var objToWrite=new Object();
-            objToWrite[playair]=score;
+            objToWrite[currentQuestion-1]=score;
             currentQuestionRef.update(objToWrite,function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);
@@ -247,13 +247,7 @@ function updateQuestion(number,nickname,code){
             });
         });
     }
-    var totalScoreRef = ref.child('sessions').child(sessionCode).child(playair); /*este último child debería de ser "playairCode", no "playair".
-                                                                                pero si le pongo como debería de ser, el child_changed en startJoing()
-                                                                                detecta un cambio y se corre updateQuestion() y voy avanzando de pregunta
-                                                                                de dos en dos. Por eso es questionScores se repiten 2 veces las scores. Una 
-                                                                                es la real y la otra en la que se detecta el child_changed.
-                                                                                Necesito encontrar una manera de que el child sí lo ponga como "playairCode"
-                                                                                pero no se corra updateQuestion() cuando se detecta el cambio en startJoin() */
+    var totalScoreRef = ref.child('sessions').child(sessionCode).child('totalScores').child(playair); 
     totalScoreRef.once("value", function(snapshot) {
         totalScoreRef.update({
             "score":score

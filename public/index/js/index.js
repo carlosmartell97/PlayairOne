@@ -131,19 +131,20 @@ function startJoin(nickname,code){
     if(!host){
         document.getElementById('startButton').style.display="none";
     }
+    
     var ref = new Firebase("https://playairone.firebaseio.com/");
-    var sessionsRef = ref.child('sessions').child(code).child('playairs');
-    sessionsRef.limitToFirst(1).on("child_added", function(snapshot) {
+    var sessionHostRef = ref.child('sessions').child(code).child('playairs');
+    sessionHostRef.limitToFirst(1).on("child_added", function(snapshot) {
         hostKey=snapshot.key();
         if(host) playairCode=hostKey;
     });
-    sessionsRef.on("child_added", function(snapshot) {
+    sessionHostRef.on("child_added", function(snapshot) {
         var session = snapshot.val();
         $("#playairs").append('<button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">'+session.nickname+'</button>');
-        $("#toggleStats").append('<li class="page-scroll"><a>'+session.nickname+': <span id="'+session.nickname+'points">'+0+'</span></a></li>');
+        $("#toggleStats").append('<li class="page-scroll"><a>'+session.nickname+': <span id="'+session.nickname+'Points">'+0+'</span></a></li>');
         numJellies++;
     });
-    sessionsRef.on("child_changed", function(snapshot) {
+    sessionHostRef.on("child_changed", function(snapshot) {
         console.log(snapshot.val());
         var changedChild = snapshot.val();
 //        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
@@ -151,7 +152,8 @@ function startJoin(nickname,code){
         if(changedChild.question>1){
             updateQuestion(++currentQuestion,playair,sessionCode);
         }
-        if(changedChild.question==1 && snapshot.hasChild('start')){
+        else{ 
+            // for this to happen, question=1
             console.log('session start!');
             startCounter(playair,sessionCode,5);
         }
@@ -164,7 +166,6 @@ function startButton(nickname,code){
     console.log(hostKey);
     sessionsRef.once("value", function(snapshot) {
         sessionsRef.update({
-            "start":true,
             "question":1
         },function(error) {
             if (error) {
@@ -207,6 +208,15 @@ function startSession(nickname,code){
 //    setTimeout("startQuestion()",2000);
     
     updateQuestion(currentQuestion,nickname,code);
+    
+    var ref = new Firebase("https://playairone.firebaseio.com/");
+    var sessionScoresRef = ref.child('sessions').child(code).child('totalScores');
+    sessionScoresRef.on("child_changed", function(snapshot) {
+        var changedChild = snapshot.val();
+        console.log(snapshot.key()+"->");
+        document.getElementById(snapshot.key()+"Points").innerHTML=changedChild.score;
+        console.log(changedChild);
+    });
 };
 
 function updateDatabaseQuestion(playair,sessionCode){

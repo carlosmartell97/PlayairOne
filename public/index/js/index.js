@@ -283,6 +283,9 @@ function updateQuestion(number,nickname,code){
                     console.log("Data could not be saved." + error);
                 } else {
                     console.log("Data saved successfully.");
+                    if(currentQuestion==howManyQuestions+1){
+                        console.log("FINISHEDDDD");
+                    }
                 }
             });
         });

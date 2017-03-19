@@ -1,4 +1,4 @@
-var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions;
+var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions; var howManyPlayairs=0;
 var playair; var playairCode; var sessionCode; var hostKey; var score=0;
 
 // ACTIVATING FULL SCREEN:
@@ -139,6 +139,7 @@ function startJoin(nickname,code){
         if(host) playairCode=hostKey;
     });
     sessionHostRef.on("child_added", function(snapshot) {
+        howManyPlayairs++;
         var session = snapshot.val();
         $("#playairs").append('<button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">'+session.nickname+'</button>');
         $("#toggleStats").append('<li class="page-scroll"><a>'+session.nickname+': <span id="'+session.nickname+'Points">'+0+'</span></a></li>');
@@ -213,10 +214,9 @@ function startSession(nickname,code){
     var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionScoresRef = ref.child('sessions').child(code).child('totalScores');
     sessionScoresRef.on("child_changed", function(snapshot) {
-        var changedChild = snapshot.val();
         console.log(snapshot.key()+"->");
-        document.getElementById(snapshot.key()+"Points").innerHTML=changedChild.score;
-        console.log(changedChild);
+        console.log(snapshot.val());
+        document.getElementById(snapshot.key()+"Points").innerHTML=snapshot.val();
     });
 };
 
@@ -284,17 +284,17 @@ function updateQuestion(number,nickname,code){
                 } else {
                     console.log("Data saved successfully.");
                     if(currentQuestion==howManyQuestions+1){
-                        console.log("FINISHEDDDD");
+                        startFinalResults();
                     }
                 }
             });
         });
     }
-    var totalScoreRef = ref.child('sessions').child(sessionCode).child('totalScores').child(playair); 
+    var totalScoreRef = ref.child('sessions').child(sessionCode).child('totalScores'); 
     totalScoreRef.once("value", function(snapshot) {
-        totalScoreRef.update({
-            "score":score
-        },function(error) {
+        var objToWrite=new Object();
+        objToWrite[playair]=score;
+        totalScoreRef.update(objToWrite,function(error) {
             if (error) {
                 console.log("Data could not be saved." + error);
             } else {
@@ -351,3 +351,161 @@ function startQuestion(){
         }
     }, 100);
 };
+
+function startFinalResults(){
+    console.log("startFinalResults()");
+    var dataLabels=[]; 
+    var dataSeries=[];
+    var count=0;
+    var ref = new Firebase("https://playairone.firebaseio.com/");
+    var questionScoresRef = ref.child('sessions').child(sessionCode).child('questionScores');
+    questionScoresRef.on("child_added", function(snapshot) {
+        count++;
+        console.log("KEY:");
+        console.log(snapshot.key());
+        
+        console.log("VAL:");
+        console.log(snapshot.val());
+        var arrToAdd=[0];
+        for(i=1; i<snapshot.val().length; i++){
+            console.log("run");
+            arrToAdd.push(snapshot.val()[i]);
+        }
+        dataSeries.push(arrToAdd);
+        console.log("c:"+count+" hM:"+howManyPlayairs);
+        if(count==howManyPlayairs){
+            console.log("TRUE!!");
+            var topScoresRef = ref.child('sessions').child(sessionCode).child('totalScores');
+            topScoresRef.orderByValue().limitToFirst(1).on("child_added", function(snapshot) {
+                document.getElementById('winningPlayair').innerHTML=snapshot.key();
+            });
+            for(i=0; i<howManyQuestions+1; i++){
+                dataLabels.push(i);
+            }
+            console.log(dataLabels);
+            console.log(dataSeries);
+            lineChart= new Chartist.Line('.ct-chart', {
+                // ["preg1","preg2","preg3"]
+                labels: dataLabels,
+                //[ [500,1500,1500],[1000,1500,3000],[0,2000,3500],[300,600,900] ]
+                series: dataSeries
+            },{
+                width: "80vw",
+                height: "30vh",
+//                        showPoint: false,
+                low:0
+            });
+            animateLineGraph();
+                    
+            function animateLineGraph(){
+                // Let's put a sequence number aside so we can use it in the event callbacks
+                var seq = 0,
+                delays = 80,
+                durations = 500;
+
+                // Once the chart is fully created we reset the sequence
+                lineChart.on('created', function() {
+                    seq = 0;
+                });
+
+                // On each drawn element by Chartist we use the Chartist.Svg API to trigger SMIL animations
+                lineChart.on('draw', function(data) {
+                        seq++;
+
+                        if(data.type === 'line') {
+                        // If the drawn element is a line we do a simple opacity fade in. This could also be achieved using CSS3 animations.
+                        data.element.animate({
+                            opacity: {
+                                // The delay when we like to start the animation
+                                begin: seq * delays + 1000,
+                                // Duration of the animation
+                                dur: durations,
+                                // The value where the animation should start
+                                from: 0,
+                                // The value where it should end
+                                to: 1
+                            }
+                        });
+                        } else if(data.type === 'label' && data.axis === 'x') {
+                            data.element.animate({
+                                y: {
+                                    begin: seq * delays,
+                                    dur: durations,
+                                    from: data.y + 100,
+                                    to: data.y,
+                                    // We can specify an easing function from Chartist.Svg.Easing
+                                    easing: 'easeOutQuart'
+                                }
+                            });
+                        } else if(data.type === 'label' && data.axis === 'y') {
+                            data.element.animate({
+                              x: {
+                                begin: seq * delays,
+                                dur: durations,
+                                from: data.x - 100,
+                                to: data.x,
+                                easing: 'easeOutQuart'
+                              }
+                            });
+                        } else if(data.type === 'point') {
+                            data.element.animate({
+                                x1: {
+                                    begin: seq * delays,
+                                    dur: durations,
+                                    from: data.x - 10,
+                                    to: data.x,
+                                    easing: 'easeOutQuart'
+                                },
+                                x2: {
+                                    begin: seq * delays,
+                                    dur: durations,
+                                    from: data.x - 10,
+                                    to: data.x,
+                                    easing: 'easeOutQuart'
+                                },
+                                opacity: {
+                                    begin: seq * delays,
+                                    dur: durations,
+                                    from: 0,
+                                    to: 1,
+                                    easing: 'easeOutQuart'
+                                }
+                            });
+                        } else if(data.type === 'grid') {
+                            // Using data.axis we get x or y which we can use to construct our animation definition objects
+                            var pos1Animation = {
+                                begin: seq * delays,
+                                dur: durations,
+                                from: data[data.axis.units.pos + '1'] - 30,
+                                to: data[data.axis.units.pos + '1'],
+                                easing: 'easeOutQuart'
+                            };
+
+                            var pos2Animation = {
+                                begin: seq * delays,
+                                dur: durations,
+                                from: data[data.axis.units.pos + '2'] - 100,
+                                to: data[data.axis.units.pos + '2'],
+                                easing: 'easeOutQuart'
+                            };
+
+                            var animations = {};
+                            animations[data.axis.units.pos + '1'] = pos1Animation;
+                            animations[data.axis.units.pos + '2'] = pos2Animation;
+                            animations['opacity'] = {
+                                begin: seq * delays,
+                                dur: durations,
+                                from: 0,
+                                to: 1,
+                                easing: 'easeOutQuart'
+                            };
+
+                            data.element.animate(animations);
+                      }
+                    });
+                }
+        }
+    });
+    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">WINNER:</span> <h1><span id="winningPlayair" class="label label-warning" style="color:#000; font-size:7vh; text-transform:none">playair</span></h1> </div> <div id="resultsGraph" style="padding-top:50px;"> <div class="ct-chart"></div> <div class="ct-pie"></div> </div> </div> </div>';
+    $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
+}

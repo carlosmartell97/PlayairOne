@@ -278,14 +278,19 @@ function updateQuestion(number,nickname,code){
         currentQuestionRef.once("value", function(snapshot) {
             var objToWrite=new Object();
             objToWrite[currentQuestion-1]=score;
+                if(currentQuestion==howManyQuestions+1){
+                    var finalResultsRef=ref.child('sessions').child(sessionCode).child('questionScores');
+                    finalResultsRef.on("child_changed", function(snapshot) {
+                        console.log("CHILD CHANGED!!");
+                        console.log(snapshot.val());
+                        startFinalResults();
+                    });
+                }
             currentQuestionRef.update(objToWrite,function(error) {
                 if (error) {
                     console.log("Data could not be saved." + error);
                 } else {
                     console.log("Data saved successfully.");
-                    if(currentQuestion==howManyQuestions+1){
-                        startFinalResults();
-                    }
                 }
             });
         });
@@ -354,6 +359,8 @@ function startQuestion(){
 
 function startFinalResults(){
     console.log("startFinalResults()");
+    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">WINNER:</span> <h1><span id="winningPlayair" class="label label-warning" style="color:#000; font-size:7vh; text-transform:none">playair</span></h1> </div> <div id="resultsGraph" style="padding-top:50px;"> <div class="ct-chart"></div> <div class="ct-pie"></div> </div> </div> </div>';
+    $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
     var dataLabels=[]; 
     var dataSeries=[];
     var count=0;
@@ -506,6 +513,4 @@ function startFinalResults(){
                 }
         }
     });
-    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">WINNER:</span> <h1><span id="winningPlayair" class="label label-warning" style="color:#000; font-size:7vh; text-transform:none">playair</span></h1> </div> <div id="resultsGraph" style="padding-top:50px;"> <div class="ct-chart"></div> <div class="ct-pie"></div> </div> </div> </div>';
-    $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
 }

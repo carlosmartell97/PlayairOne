@@ -378,8 +378,10 @@ function startFinalResults(){
         if(count==howManyPlayairs){
             console.log("TRUE!!");
             var topScoresRef = ref.child('sessions').child(sessionCode).child('totalScores');
-            topScoresRef.orderByValue().limitToFirst(1).on("child_added", function(snapshot) {
+            topScoresRef.orderByValue().limitToLast(1).on("child_added", function(snapshot) {
                 document.getElementById('winningPlayair').innerHTML=snapshot.key();
+                console.log("HEREEEEE: ");
+                console.log(snapshot.val());
             });
             for(i=0; i<howManyQuestions+1; i++){
                 dataLabels.push(i);

@@ -1,5 +1,6 @@
 var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions; var howManyPlayairs=0;
 var playair; var playairCode; var sessionCode; var hostKey; var score=0;
+var progressBar;
 
 // ACTIVATING FULL SCREEN:
 // Find the right method, call on correct element
@@ -230,6 +231,8 @@ function startSession(nickname,code){
 };
 
 function showCorrectAnswer(){
+    $('.progress').css('visibility','visible').hide().fadeOut('slow');
+    window.clearInterval(progressBar);
     $('#nextButton').css("display","none");
     $('#options').css('visibility','visible').hide().fadeOut('slow');
     $('#correctAnswerFirst').css('visibility','visible').hide().fadeIn('slow');
@@ -341,13 +344,14 @@ function checkHost(){
 function startQuestion(){
     $('.progress').css('visibility','visible').hide().fadeIn('slow');
     $('#options').css('visibility','visible').hide().fadeIn('slow');
-    var i = 0;
-    var progressBar = setInterval(function () {
-        i++;
-        if (i < 99) {
-            $('.progress-bar').css('width', i + '%');
+    var barPercentage = 0;
+    progressBar = setInterval(function () {
+        console.log("RUN");
+        barPercentage++;
+        if (barPercentage < 101) {
+            $('.progress-bar').css('width', barPercentage + '%');
         } else {
-            clearInterval(progressBar);
+            window.clearInterval(progressBar);
         }
     }, 100);
 };

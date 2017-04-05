@@ -128,7 +128,7 @@ function startJoin(nickname,code){
     document.getElementById('gameContainer').style.paddingTop="165px";
     document.getElementById('toggleButton').innerHTML="STATS";
     document.getElementById('toggleStats').innerHTML="";
-    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">ACCESS CODE:</span> <h1><span class="label label-warning" style="color:#000; font-size:6vw; text-transform:none">'+code+'</span></h1> </div> <div class="intro-text" style="padding:2vw; font-size:4vh"> Playairs: </div> <div class="col-lg-12" id="playairs" style=" width:95%; left:2.5%"> </div> </div> </div> <div class="container" id="footer" style="padding:8px; position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" id="startButton" style="font-size:5vh" onclick="startButton('+"'"+nickname+"'"+','+"'"+code+"'"+')"> <i class="fa fa-thumbs-up"></i> Start! </a> </div> </div> </div>';
+    document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">ACCESS CODE:</span> <h2><span class="label label-warning" style="color:#000; font-size:6vw; text-transform:none">'+code+'</span></h2> </div> <div class="intro-text" style="padding:2vw; font-size:4vh"> Playairs: </div> <div class="col-lg-12" id="playairs" style=" width:95%; left:2.5%"> </div> </div> </div> <div class="container" id="footer" style="padding:8px; position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row"> <div class="col-lg-12"> <a class="btn btn-lg btn-outline" id="startButton" style="font-size:5vh" onclick="startButton('+"'"+nickname+"'"+','+"'"+code+"'"+')"> <i class="fa fa-thumbs-up"></i> Start! </a> </div> </div> </div>';
     if(!host){
         document.getElementById('startButton').style.display="none";
     }
@@ -218,15 +218,6 @@ function startSession(nickname,code){
         console.log(snapshot.key()+"->");
         console.log(snapshot.val());
         document.getElementById(snapshot.key()+"Points").innerHTML=snapshot.val();
-        if(currentQuestion==howManyQuestions+1){
-            startFinalResults();
-            var finalResultsRef=ref.child('sessions').child(sessionCode).child('questionScores');
-            finalResultsRef.on("child_changed", function(snapshot) {
-                console.log("CHILD CHANGED!!");
-                console.log(snapshot.val());
-                startFinalResults();
-            });
-        }
     });
 };
 
@@ -289,6 +280,15 @@ function updateQuestion(number,nickname,code){
                     console.log("Data could not be saved." + error);
                 } else {
                     console.log("Data saved successfully.");
+                    if(currentQuestion==howManyQuestions+1){
+                        startFinalResults();
+                        var finalResultsRef=ref.child('sessions').child(sessionCode).child('questionScores');
+                        finalResultsRef.on("child_changed", function(snapshot) {
+                            console.log("CHILD CHANGED!!");
+                            console.log(snapshot.val());
+                            startFinalResults();
+                        });
+                    }
                 }
             });
         });

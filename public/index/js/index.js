@@ -1,6 +1,7 @@
 var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions; var howManyPlayairs=0;
 var playair; var playairCode; var sessionCode; var hostKey; var score=0;
 var progressBar;
+var ref = new Firebase("https://playairone.firebaseio.com/"); var sessionsRef; var playairsRef; var questionsRef;
 
 // ACTIVATING FULL SCREEN:
 // Find the right method, call on correct element
@@ -44,8 +45,7 @@ function checkInput2(code,nickname){
 
 function createRandomSession(nickname){
     //WRITING DATA
-    var ref = new Firebase("https://playairone.firebaseio.com/");
-    var sessionsRef = ref.child("sessions");
+    sessionsRef = ref.child("sessions");
     var pushedData = sessionsRef.push({
         "playairs":{
             "0":{
@@ -66,12 +66,12 @@ function createRandomSession(nickname){
 
 function createCustomSession(nickname,customCode){
     //WRITING DATA
-    var ref = new Firebase("https://playairone.firebaseio.com/sessions/");
-    ref.once('value', function(snapshot) {
+    sessionsRef = ref.child("sessions");
+    sessionsRef.once('value', function(snapshot) {
         if (!snapshot.hasChild(customCode)) {
             document.getElementById("customCodeMessage").style.display="none";
-            var sessionsRef = ref.child(customCode).child('playairs');
-            var pushedData = sessionsRef.push({
+            var playairsRef = sessionsRef.child(customCode).child('playairs');
+            var pushedData = playairsRef.push({
                 "nickname":nickname
             }, function(error) {
                 if (error) {
@@ -94,12 +94,12 @@ function createCustomSession(nickname,customCode){
 
 function joinSession(code,nickname){
     //WRITING DATA
-    var ref = new Firebase("https://playairone.firebaseio.com/sessions/");
-    ref.once('value', function(snapshot) {
+    sessionsRef = ref.child("sessions");
+    sessionsRef.once('value', function(snapshot) {
         if (snapshot.hasChild(code)) {
             document.getElementById("codeMessage").style.display="none";
-            var sessionsRef = ref.child(code).child('playairs');
-            var pushedData = sessionsRef.push({
+            var playairsRef = sessionsRef.child(code).child('playairs');
+            var pushedData = playairsRef.push({
                     "nickname":nickname
             }, function(error) {
                 if (error) {
@@ -133,20 +133,19 @@ function startJoin(nickname,code){
         document.getElementById('startButton').style.display="none";
     }
     
-    var ref = new Firebase("https://playairone.firebaseio.com/");
-    var sessionHostRef = ref.child('sessions').child(code).child('playairs');
-    sessionHostRef.limitToFirst(1).on("child_added", function(snapshot) {
+    playairsRef = ref.child('sessions').child(code).child('playairs');
+    playairsRef.limitToFirst(1).on("child_added", function(snapshot) {
         hostKey=snapshot.key();
         if(host) playairCode=hostKey;
     });
-    sessionHostRef.on("child_added", function(snapshot) {
+    playairsRef.on("child_added", function(snapshot) {
         howManyPlayairs++;
         var session = snapshot.val();
         $("#playairs").append('<button type="button" class="btn-lg btn-primary" style="position:relative; padding:1px">'+session.nickname+'</button>');
         $("#toggleStats").append('<li class="page-scroll"><a>'+session.nickname+': <span id="'+session.nickname+'Points">'+0+'</span></a></li>');
         numJellies++;
     });
-    sessionHostRef.on("child_changed", function(snapshot) {
+    playairsRef.on("child_changed", function(snapshot) {
         console.log(snapshot.val());
         var changedChild = snapshot.val();
 //        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
@@ -164,7 +163,6 @@ function startJoin(nickname,code){
 };
 
 function startButton(nickname,code){
-    var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child('sessions').child(code).child('playairs').child(hostKey);
     console.log(hostKey);
     sessionsRef.once("value", function(snapshot) {
@@ -206,13 +204,12 @@ function startSession(nickname,code){
 //    $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> Session Code: <span id="sessionCode">'+code+'</span> </div>');
 //    $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
 //    setTimeout("startQuestion()",2000);
-    var ref = new Firebase("https://playairone.firebaseio.com/");
-    ref.child('games').child('Quiz').child('questions').once("value").then(function(snapshot){
+    questionsRef = ref.child('games').child('Quiz').child('questions');
+    questionsRef.once("value").then(function(snapshot){
         howManyQuestions = snapshot.numChildren();
     });
     updateQuestion(currentQuestion,nickname,code);
     
-    var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionScoresRef = ref.child('sessions').child(code).child('totalScores');
     sessionScoresRef.on("child_changed", function(snapshot) {
         console.log(snapshot.key()+"->");
@@ -252,7 +249,6 @@ function showCorrectAnswer(){
 }
 
 function updateDatabaseQuestion(playair,sessionCode){
-    var ref = new Firebase("https://playairone.firebaseio.com/");
     var sessionsRef = ref.child('sessions').child(sessionCode).child('playairs').child(hostKey);
     sessionsRef.once("value", function(snapshot) {
         sessionsRef.update({
@@ -268,7 +264,6 @@ function updateDatabaseQuestion(playair,sessionCode){
 }
 
 function updateQuestion(number,nickname,code){
-    var ref = new Firebase("https://playairone.firebaseio.com/");
     // update score history, adding the score for the current question
     if(currentQuestion>1){
         var currentQuestionRef = ref.child('sessions').child(sessionCode).child('questionScores').child(playair);
@@ -305,8 +300,7 @@ function updateQuestion(number,nickname,code){
             }
         });
     });
-    var questionsRef = ref.child('games').child('Quiz').child('questions').child(currentQuestion);
-    questionsRef.on("child_added", function(question) {
+    questionsRef.child(currentQuestion).on("child_added", function(question) {
         console.log(question.key());
         console.log(question.val());
         var answers=question.val();
@@ -363,7 +357,6 @@ function startFinalResults(){
     var dataLabels=[]; 
     var dataSeries=[];
     var count=0;
-    var ref = new Firebase("https://playairone.firebaseio.com/");
     var questionScoresRef = ref.child('sessions').child(sessionCode).child('questionScores');
     questionScoresRef.on("child_added", function(snapshot) {
         count++;

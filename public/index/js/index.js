@@ -354,30 +354,40 @@ function startFinalResults(){
     document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <span class="name">WINNER:</span> <h1><span id="winningPlayair" class="label label-warning" style="color:#000; font-size:7vh; text-transform:none">playair</span></h1> </div> <div id="resultsGraph" style="padding-top:50px;"> <div class="ct-chart"></div> <div class="ct-pie"></div> </div> </div> </div>';
     $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
     var dataLabels=[]; 
-    var dataSeries=[];
+    var dataSeries=[howManyPlayairs];
     var count=0;
-    questionScoresRef.on("child_added", function(snapshot) {
-        var value = snapshot.val();
-        count++;
-        console.log("KEY:");
-        console.log(snapshot.key());
+    
+    questionScoresRef.on("value",function(snapshot){
+        count = snapshot.numChildren();
+        console.log("COUNT->"+count);
         
-        console.log("VAL:");
-        console.log(value);
-        var arrToAdd=[0];
-        for(i=1; i<value.length; i++){
-            console.log("run");
-            arrToAdd.push(value[i]);
-        }
-        dataSeries.push(arrToAdd);
-        console.log("c:"+count+" hM:"+howManyPlayairs);
         if(count==howManyPlayairs){
             console.log("TRUE!!");
             totalScoresRef.orderByValue().limitToLast(1).on("child_added", function(snapshot) {
                 document.getElementById('winningPlayair').innerHTML=snapshot.key();
-                console.log("HEREEEEE: ");
-                console.log(value);
             });
+            var legendNames=[howManyPlayairs];
+            var counting = 1;
+            totalScoresRef.orderByValue().on("child_added", function(snapshot) {
+                var playairNickname = snapshot.key();
+                console.log("ORDEEER: ");
+                console.log(snapshot.key());
+                console.log("______");
+                legendNames[howManyPlayairs-counting]=playairNickname;
+                
+                questionScoresRef.child(playairNickname).on("value",function(snapshot){
+                    var scores = snapshot.val();
+                    var arrToAdd=[0];
+                    for(i=1; i<scores.length; i++){
+                        console.log("run");
+                        arrToAdd.push(scores[i]);
+                    }
+                    dataSeries[howManyPlayairs-counting] = arrToAdd;
+                });
+                counting++;
+            });
+            console.log("FINAL LEGEND:");
+            console.log(legendNames);
             for(i=0; i<howManyQuestions+1; i++){
                 dataLabels.push(i);
             }
@@ -389,10 +399,16 @@ function startFinalResults(){
                 //[ [500,1500,1500],[1000,1500,3000],[0,2000,3500],[300,600,900] ]
                 series: dataSeries
             },{
+                //showPoint: false,
                 width: "80vw",
                 height: "30vh",
-//                        showPoint: false,
-                low:0
+                low:0,
+                plugins: [
+                    Chartist.plugins.legend({
+                        legendNames: legendNames,
+                        //clickable: false
+                    })
+                ]
             });
             animateLineGraph(); // from chartistAnimation.js
         }

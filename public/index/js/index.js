@@ -1,6 +1,6 @@
 var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions; var howManyPlayairs=0;
 var playair; var playairCode; var sessionCode; var hostKey; var score=0;
-var progressBar;
+var progressBar; var timeQuestionsShown;
 var ref = new Firebase("https://playairone.firebaseio.com/"); var sessionsRef; var playairsRef; var questionsRef; var questionScoresRef; var totalScoresRef;
 
 // ACTIVATING FULL SCREEN:
@@ -320,7 +320,8 @@ function updateScore(choice){
     document.getElementById('options').innerHTML='<p style="position:absolute; top:30vh; left:0; right:0; font-size:5vh;"> waiting for other playairs...</p>';
     $('#options').css('visibility','visible').hide().fadeIn('slow');
     if(choice==correctAnswer){
-        score+=500;
+        var timePassed = new Date().getTime() - timeQuestionsShown;
+        score+=parseInt((500-(timePassed*5/100)),10); // if answered immediately, 500 points are added. Otherwise, less score is awarded for more passing time.
         console.log("s:"+score);
         answerWasCorrect=true;
     }else{
@@ -338,6 +339,7 @@ function checkHost(){
 function startQuestion(){
     $('.progress').css('visibility','visible').hide().fadeIn('slow');
     $('#options').css('visibility','visible').hide().fadeIn('slow');
+    timeQuestionsShown = new Date().getTime();
     var barPercentage = 0;
     progressBar = setInterval(function () {
         barPercentage++;

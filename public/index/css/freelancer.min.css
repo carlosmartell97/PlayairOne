@@ -13,7 +13,7 @@ hr.question:after, hr.gamepad:after, hr.peace:after, hr.hosting:after, hr.joinin
     font-family:FontAwesome;display:inline-block;position:relative;top:-.8em;padding:0 .25em;background-color:#18BC9C;color:#fff
 }
 hr.question:after{
-    content:"\f128";font-size:6.7vh
+    content:"\f128";font-size:5.7vh
 }
 hr.gamepad:after{
     content:"\f11b";font-size:6.7vh

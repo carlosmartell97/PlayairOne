@@ -1,7 +1,7 @@
-var randomCode=false; var host=false; var currentQuestion=1; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions; var howManyPlayairs=0;
+var randomCode=false; var host=false; var currentQuestion=1; var answers; var correctAnswer; var answerWasCorrect; var correctAnswerText; var howManyQuestions; var howManyPlayairs=0;
 var playair; var playairCode; var sessionCode; var hostKey; var score=0;
 var progressBar; var timeQuestionsShown;
-var ref = new Firebase("https://playairone.firebaseio.com/"); var sessionsRef; var playairsRef; var questionsRef; var questionScoresRef; var totalScoresRef;
+var ref = new Firebase("https://playairone.firebaseio.com/"); var sessionsRef; var playairsRef; var questionsRef; var questionScoresRef; var totalScoresRef; var answersRef;
 
 // ACTIVATING FULL SCREEN:
 // Find the right method, call on correct element
@@ -203,6 +203,7 @@ function startSession(){
 //    $('#gameZone').css('visibility','visible').hide().fadeIn('slow');
 //    setTimeout("startQuestion()",2000);
     questionScoresRef = sessionsRef.child(sessionCode).child('questionScores');
+    answersRef = sessionsRef.child(sessionCode).child('answers');
     
     totalScoresRef = sessionsRef.child(sessionCode).child('totalScores');
     totalScoresRef.on("child_changed", function(snapshot) {
@@ -301,10 +302,10 @@ function updateQuestion(number){
     questionsRef.child(currentQuestion).on("child_added", function(question) {
         console.log(question.key());
         console.log(question.val());
-        var answers=question.val();
+        answers=question.val();
         correctAnswer=answers[0];
         correctAnswerText=answers[correctAnswer];
-        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline" onclick="updateScore(1);"> '+answers[1]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(2);"> '+answers[2]+' </a> <br> <a class="btn btn-lg btn-outline" onclick="updateScore(3);"> '+answers[3]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(4);"> '+answers[4]+' </a> </span> </div> </div> <div id="correctAnswerDiv" style="position:absolute; bottom:18vh; left:0; right:0; font-size:3vh"> <div id="correctAnswerFirst" style="visibility:hidden; display:none"> <i id="correctAnswerIcon" class="fa fa-times fa-4x" aria-hidden="true"></i> </div> <div id="correctAnswerSecond" style="visibility:hidden; display:none"> ANSWER:<br> <a class="btn btn-lg btn-outline"> <span id="correctAnswerText">text</span> </a> </div> </div> </div>';
+        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name" style="font-size:3vh">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline" onclick="updateScore(1);"> '+answers[1]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(2);"> '+answers[2]+' </a> <br> <a class="btn btn-lg btn-outline" onclick="updateScore(3);"> '+answers[3]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(4);"> '+answers[4]+' </a> </span> </div> </div> <div id="correctAnswerDiv" style="position:absolute; bottom:18vh; left:0; right:0; font-size:3vh"> <div id="correctAnswerFirst" style="visibility:hidden; display:none"> <i id="correctAnswerIcon" class="fa fa-times fa-4x" aria-hidden="true"></i> </div> <div id="correctAnswerSecond" style="visibility:hidden; display:none"> ANSWER:<br> <a class="btn btn-lg btn-outline"> <span id="correctAnswerText">text</span> </a> </div> </div> </div>';
         //if(host){
             $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> <div id="nextButton" style="display:none"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateDatabaseQuestion()"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> </div> Session Code: <span id="sessionCode">'+sessionCode+'</span> </div>');
         //}
@@ -328,6 +329,18 @@ function updateScore(choice){
         answerWasCorrect=false;
     }
     checkHost();
+    
+    answersRef.child(currentQuestion).once("value", function(snapshot) {
+        var objToWrite = new Object();
+        objToWrite[playair] = choice;
+        answersRef.child(currentQuestion).update(objToWrite,function(error) {
+            if (error) {
+                console.log("Data could not be saved." + error);
+            } else {
+                console.log("Data saved successfully.");
+            }
+        });
+    });
 };
 
 function checkHost(){
@@ -359,8 +372,8 @@ function startFinalResults(){
     var dataSeries=[howManyPlayairs];
     var count=0;
     
-    questionScoresRef.on("value",function(snapshot){
-        count = snapshot.numChildren();
+    questionScoresRef.on("value",function(snap){
+        count = snap.numChildren();
         console.log("COUNT->"+count);
         
         if(count==howManyPlayairs){
@@ -390,6 +403,18 @@ function startFinalResults(){
             });
             console.log("FINAL LEGEND:");
             console.log(legendNames);
+            
+            answersRef.on("child_added",function(snpsht){
+                var pulledQuestion = snpsht.val();
+                console.log("__child-->");
+                console.log(pulledQuestion);
+                console.log(pulledQuestion.length);
+                for(i=0; i<pulledQuestion.length; i++){
+                    console.log("answer:");
+                    console.log(pulledQuestion[i]);
+                }
+            });
+            
             for(i=0; i<howManyQuestions+1; i++){
                 dataLabels.push(i);
             }

@@ -70,7 +70,7 @@ function createCustomSession(nickname,customCode){
     sessionsRef.once('value', function(snapshot) {
         if (!snapshot.hasChild(customCode)) {
             document.getElementById("customCodeMessage").style.display="none";
-            var playairsRef = sessionsRef.child(customCode).child('playairs');
+            playairsRef = sessionsRef.child(customCode).child('playairs');
             var pushedData = playairsRef.push({
                 "nickname":nickname
             }, function(error) {
@@ -132,7 +132,6 @@ function startJoin(nickname,code){
     if(!host){
         document.getElementById('startButton').style.display="none";
     }
-    
     playairsRef = ref.child('sessions').child(code).child('playairs');
     playairsRef.limitToFirst(1).on("child_added", function(snapshot) {
         hostKey=snapshot.key();
@@ -147,7 +146,7 @@ function startJoin(nickname,code){
     });
     playairsRef.on("child_changed", function(snapshot) {
         var changedChild = snapshot.val();
-//        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
+        console.log("CHILD_CHANGED"); console.log(changedChild); console.log("___");
         console.log(changedChild.question);
         if(changedChild.question>1){
             showCorrectAnswer();
@@ -220,6 +219,7 @@ function startSession(){
 };
 
 function showCorrectAnswer(){
+    console.log("show correct answer");
     $('.progress').css('visibility','visible').hide().fadeOut('slow');
     window.clearInterval(progressBar);
     $('#nextButton').css("display","none");
@@ -236,31 +236,39 @@ function showCorrectAnswer(){
         $('#correctAnswerFirst').css('visibility','visible').hide().fadeOut('slow');
         $('#correctAnswerFirst').css('display','none');
         $('#correctAnswerSecond').css('visibility','visible').hide().fadeIn('slow');
+        $('#correctAnswerSecond').css('display','block');
     }, 800);
     var third = setTimeout(function(){
         console.log("NOW");
         console.log("cQ:"+currentQuestion);
         console.log("hM:"+howManyQuestions);
         if(currentQuestion<=howManyQuestions){
-            $('#correctAnswerSecond').css('display','none');
-            $('#correctAnswerSecond').css('visibility','visible').hide().fadeOut('slow');
+            //$('#correctAnswerSecond').css('display','none');
+            //$('#correctAnswerSecond').css('visibility','visible').hide().fadeOut('slow');
             updateQuestion(++currentQuestion);
         }
     }, 3000);
 }
 
 function updateDatabaseQuestion(){
-    var sessionsRef = ref.child('sessions').child(sessionCode).child('playairs').child(hostKey);
-    sessionsRef.once("value", function(snapshot) {
-        sessionsRef.update({
-            "question":currentQuestion+1
-        },function(error) {
-            if (error) {
-                console.log("Data could not be saved." + error);
-            } else {
-                console.log("Data saved successfully.");
-            }
-        });
+    console.log("Update Database Question");
+    answersRef.child(currentQuestion).once("value", function(snapshot) {
+        var answersSoFar = snapshot.numChildren();
+        console.log("ANSWERS so far: " + answersSoFar);
+        if(answersSoFar == howManyPlayairs){
+            var sessionsRef = ref.child('sessions').child(sessionCode).child('playairs').child(hostKey);
+            sessionsRef.once("value", function(snapshot) {
+                sessionsRef.update({
+                    "question":currentQuestion+1
+                },function(error) {
+                    if (error) {
+                        console.log("Data could not be saved." + error);
+                    } else {
+                        console.log("Data saved successfully.");
+                    }
+                });
+            });
+        }
     });
 }
 
@@ -305,9 +313,9 @@ function updateQuestion(number){
         answers=question.val();
         correctAnswer=answers[0];
         correctAnswerText=answers[correctAnswer];
-        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name" style="font-size:3vh">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline" onclick="updateScore(1);"> '+answers[1]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(2);"> '+answers[2]+' </a> <br> <a class="btn btn-lg btn-outline" onclick="updateScore(3);"> '+answers[3]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(4);"> '+answers[4]+' </a> </span> </div> </div> <div id="correctAnswerDiv" style="position:absolute; bottom:18vh; left:0; right:0; font-size:3vh"> <div id="correctAnswerFirst" style="visibility:hidden; display:none"> <i id="correctAnswerIcon" class="fa fa-times fa-4x" aria-hidden="true"></i> </div> <div id="correctAnswerSecond" style="visibility:hidden; display:none"> ANSWER:<br> <a class="btn btn-lg btn-outline"> <span id="correctAnswerText">text</span> </a> </div> </div> </div>';
+        document.getElementById('gameContainer').innerHTML='<div class="row" id="gameZone" style="visibility:hidden"> <div class="col-lg-12"> <div class="intro-text"> <div class="progress" style="visibility:hidden"> <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"> <span class="sr-only">0% Complete</span> </div> </div> <span class="name" style="font-size:3vh">'+question.key()+'</span> <hr class="question"> <span class="skills" id="options" style="visibility:hidden"> <a class="btn btn-lg btn-outline" onclick="updateScore(1);"> '+answers[1]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(2);"> '+answers[2]+' </a> <br> <a class="btn btn-lg btn-outline" onclick="updateScore(3);"> '+answers[3]+' </a> <a class="btn btn-lg btn-outline" onclick="updateScore(4);"> '+answers[4]+' </a> </span> </div> </div> <div id="nextButtonDiv" style="position:absolute; bottom:18vh; left:0; right:0; font-size:3vh; display:block"> <div class="col-lg-12"> <div id="nextButton" style="font-size:3vh"> <a class="btn btn-lg btn-outline" style="font-size:5vh"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> </div> <div class="row" id="correctAnswerDiv"> <div id="correctAnswerFirst" style="display: none"> <i id="correctAnswerIcon" class="fa fa-times fa-4x" aria-hidden="true"></i> </div> <div id="correctAnswerSecond" style="display: none"> <div style="font-size:3vh"> ANSWER:<br> <a class="btn btn-lg btn-outline"> <span id="correctAnswerText">text</span> </a> </div> </div> </div> </div>';
         //if(host){
-            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> <div id="nextButton" style="display:none"> <a class="btn btn-lg btn-outline" style="font-size:5vh" onclick="updateDatabaseQuestion()"> <i class="fa fa-arrow-circle-right"></i> next </a> </div> </div> </div> Session Code: <span id="sessionCode">'+sessionCode+'</span> </div>');
+            $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> Session Code: <span id="sessionCode">'+sessionCode+'</span> </div>');
         //}
         /*else{
             $('header').append('<div style="position:absolute; bottom:0; left:0; right:0; font-size:2.5vh"> <div class="row" id="nextButtonDiv"> <div class="col-lg-12"> </div> </div> Session Code: <span id="sessionCode">'+code+'</span> </div>');
@@ -328,6 +336,7 @@ function updateScore(choice){
     }else{
         answerWasCorrect=false;
     }
+    //aqui
     checkHost();
     
     answersRef.child(currentQuestion).once("value", function(snapshot) {
@@ -338,6 +347,7 @@ function updateScore(choice){
                 console.log("Data could not be saved." + error);
             } else {
                 console.log("Data saved successfully.");
+                updateDatabaseQuestion();
             }
         });
     });
@@ -350,6 +360,7 @@ function checkHost(){
 }
 
 function startQuestion(){
+    console.log("Start Question");
     $('.progress').css('visibility','visible').hide().fadeIn('slow');
     $('#options').css('visibility','visible').hide().fadeIn('slow');
     timeQuestionsShown = new Date().getTime();
